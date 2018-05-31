@@ -1,0 +1,17 @@
+---
+# this playbook will pack and unpack the system directories/files to migrate to remote site
+
+- name: archivinng sources for migrations
+  hosts: pack
+
+  roles:
+    - pack
+
+- name: unarchivinng sources for migrations
+  hosts: unpack
+  user: ec2-user
+  become: yes
+
+  roles:
+    - unpack
+

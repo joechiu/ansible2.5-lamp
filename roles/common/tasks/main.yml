@@ -1,0 +1,49 @@
+---
+# This playbook contains common plays that will be run on all nodes.
+
+- name: install the 'Development tools' package group
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: Install ntp
+  yum: name=ntp state=present
+  tags: ntp
+
+- name: Install common dependencies
+  yum: name={{ item }} state=installed
+  with_items:
+   - libselinux-python
+   - libsemanage-python
+   - firewalld
+   - perl-libwww-perl
+   - perl-JSON
+
+- name: Configure ntp file
+  template: src=ntp.conf.j2 dest=/etc/ntp.conf
+  tags: ntp
+  notify: restart ntp
+
+- name: Start the ntp service
+  service: name=ntpd state=started enabled=yes
+  tags: ntp
+
+- name: Remove user account beforehand
+  user:
+    name: "{{ item.user }}"
+    state: absent
+    remove: yes
+  with_items:
+    - "{{ user_accounts }}"
+
+- name: Create login users
+  user:
+    name: "{{ item.user }}"
+    password: "{{ item.pass }}"
+    groups: root        # Empty by default.
+    state: present
+    shell: /bin/bash    # Defaults to /bin/bash
+    system: no          # Defaults to no
+  with_items:
+    - "{{ user_accounts }}"
+

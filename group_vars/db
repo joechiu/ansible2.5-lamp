@@ -1,0 +1,14 @@
+---
+# The variables file used by the playbooks in the dbservers group.
+# These don't have to be explicitly imported by vars_files: they are autopopulated.
+mysqlservice: mysqld
+mysql_port: 3306
+dbname: foodb
+dbuser: foouser
+upassword: xyz
+
+
+# user details
+# to generate the encrypted password: php -r 'echo "*" . strtoupper(sha1(sha1("password", TRUE)));'
+acc_items: 
+    - { user: test,        pass: '*61E38EDD872E5871B2F10D46BD4BE1727F8ED668' } 

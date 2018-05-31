@@ -1,0 +1,55 @@
+---
+- name: Unpacking databases by gz files
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      - [{{role_path|basename}}] Unpacking databases from the gzip files<br>
+
+
+# restore databases
+- name: Copy backup databases to remote server
+  copy: 
+    src: "{{ target_dir }}/{{item}}.sql.gz" 
+    dest: "/tmp/{{item}}.sql.gz"
+    mode: 0755
+  with_items:
+    - "{{ db_files }}"
+
+- name: Restore database by gz files
+  become: yes
+  become_user: ec2-user
+  mysql_db:
+    state: import
+    name: "{{ item }}"
+    login_host: "localhost"
+    login_port: "{{ mysql_port }}"
+    login_user: "root"
+    login_password: "{{ mysql_root_password }}"
+    config_file: no
+    target: "/tmp/{{item}}.sql.gz"
+  with_items:
+    - "{{ db_files }}"
+  notify:
+    - restart db
+
+- name: Unpacking user and web directories / files
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      - [{{role_path|basename}}] Migrating user and backup directories / files<br>
+
+# migrate archives
+- name: Create a Migration Directory
+  file: path={{ www_dir }} state=directory owner=joechiu mode=0755
+
+- name: Unarchiving the Web Sources
+  unarchive:
+    src: "{{ target_dir }}/{{ item }}.tgz"
+    dest: "{{ www_dir }}"
+    mode: 0755
+    owner: joechiu
+  with_items:
+    - "{{ www_sites }}"
+

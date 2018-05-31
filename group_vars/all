@@ -1,0 +1,30 @@
+---
+# Variables listed here are applicable to all host groups
+
+httpd_port: 80
+ntpserver: pool.ntp.org
+repository: https://github.com/joehmchiu/web-test-lamp.git
+
+# target directory for backup
+target_dir: /tmp/backup
+
+# create users and password pair
+# to generate the encrypted password: mkpasswd --method=sha-512 password
+user_accounts:
+    - { user: username,    pass: $6$/LSSI/mKt$AuhndmeQEPpHrd3dY/sjgLhd0bjAbNQj2FerGMBx97Gxsqi4kGQCqH7AEaDxl9aLOQ6Kxdzi7g621i7fQ.GiN. }
+
+# packing / unpacking datbase dump 
+# '!' will cause "gzip: stdout: Broken pipe" issue
+mysql_root_password: abc
+dump_file: all.sql.gz
+
+# www sites
+httpd_conf: /etc/httpd/conf/httpd.conf
+www_dir: /var/www
+www_sites: [ test ]
+www_confs: [ test ]
+www_index: /var/www/html/index.php
+
+# database dumped files
+db_files: [ test ]
+

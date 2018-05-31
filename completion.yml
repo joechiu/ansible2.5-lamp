@@ -1,0 +1,10 @@
+---
+# this playbook will pack and unpack the system directories/files to migrate to remote site
+
+- name: finalizing all the tasks
+  hosts: completion
+  user: ec2-user
+  become: yes
+  roles:
+    - comp
+

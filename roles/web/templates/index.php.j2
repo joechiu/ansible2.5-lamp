@@ -1,0 +1,42 @@
+<html>
+<head>
+    <title>Ansible Application</title>
+<style>
+body { 
+    margin: 0px;
+    padding: 0px;
+    font-size: 76%;
+    line-height: 1.4;
+    font-family: helvetica, sans-serif, arial, serif, georgia, times, "times new roman";
+}
+</style>
+</head>
+<body>
+<p>
+    <b><a href="/index.html">Homepage {{ ansible_hostname }} - {{inventory_hostname}}</a></b>
+</p>
+<b>
+ansible_all_ipv4_addresses: {{ansible_all_ipv4_addresses}}<br>
+ansible_nodename: {{ansible_nodename}}<br>
+ansible_kernel: {{ansible_kernel}}<br>
+ansible_distribution_version: {{ansible_distribution_version}}<br>
+ansible_python_version: {{ansible_python_version}}<br>
+ansible_product_name: {{ansible_product_name}}<br>
+ansible_product_version: {{ansible_product_version}}<br>
+ansible_system_vendor: {{ansible_system_vendor}}<br>
+ansible_virtualization_type: {{ansible_virtualization_type}}<br>
+</b>
+<br>
+<?php
+echo  "<b>List of Databases: </b>";
+{% for host in groups['dbservers'] %}
+    $link = mysqli_connect('localhost', '{{ hostvars[host].dbuser }}', '{{ hostvars[host].upassword }}') or die(mysqli_connect_error($link));
+{% endfor %}
+$res = mysqli_query($link, "SHOW DATABASES;");
+while ($row = mysqli_fetch_assoc($res)) {
+    echo "-\t".$row['Database'] . "<br>\n";
+}
+?>
+</body>
+</html>
+

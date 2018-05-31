@@ -1,0 +1,11 @@
+---
+# Undo all the Tasks in one go
+
+- name: rollback before to go to LAMP installation
+  hosts: undo
+  user: ec2-user
+  become: yes
+
+  roles:
+    - undo
+

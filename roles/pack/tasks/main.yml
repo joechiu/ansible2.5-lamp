@@ -1,0 +1,27 @@
+---
+- name: Create a Migration Directory
+  file: path={{ target_dir }} state=directory owner=joechiu mode=0755
+
+- name: Archiving Info Web Sources
+  archive:
+    path: "{{ www_dir }}/{{ item }}"
+    dest: "{{ target_dir }}/{{ item }}.tgz"
+    mode: 0755
+    owner: joechiu
+  with_items:
+    - "{{ www_sites }}"
+
+# - name: Dump Database Data
+#   mysql_db: name=all login_host=localhost login_user=root login_password={{mysql_root_password}} state=dump target={{ target_dir }}/{{dump_file}}
+
+- name: Dump Database Data
+  mysql_db: 
+    name: "{{ item }}"
+    login_host: "localhost"
+    login_user: "root" 
+    login_password: "{{mysql_root_password}}" 
+    state: dump 
+    target: "{{ target_dir }}/{{item}}.sql.gz"
+  with_items:
+    - "{{ db_files }}"
+

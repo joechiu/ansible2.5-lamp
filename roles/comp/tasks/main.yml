@@ -1,0 +1,46 @@
+---
+# restart services
+
+- name: Aappending customer conf to httpd.conf
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      - [{{role_path|basename}}] Aappending customer conf to httpd.conf<br>
+
+
+- name: Aappending customer conf to httpd.conf
+  blockinfile:
+    path: "{{ httpd_conf }}"
+    marker: ""
+    block: |
+      # include conf/joon.conf
+      include conf/test.conf
+
+- name: Copy and backup the httpd conf files
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      - [{{role_path|basename}}] Copy and backup the httpd conf files<br>
+
+- name: Copy and backup the httpd conf files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ item }}"
+    backup: yes
+  with_fileglob:
+    - "/etc/httpd/conf/*.conf"
+  when: item != '/etc/httpd/conf/httpd.conf'
+  notify: 
+    - restart httpd
+
+- name: Tasks done and appending stop refresh jquery block in "{{ www_index }}"
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      - [{{role_path|basename}}] Tasks <b>DONE</b><br>
+      <script>console.log('FIN');</script>
+
+

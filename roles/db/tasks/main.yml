@@ -1,0 +1,110 @@
+---
+# This playbook will install MariaDB and create db user and give permissions.
+
+- name: Task process message
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      <h4>Task Processes</h4>
+      - [{{role_path|basename}}] Install MariaDB package<br>
+
+- name: Install MariaDB package
+  yum: name={{ item }} state=installed
+  with_items:
+   - mariadb
+   - mariadb-server
+   - mariadb-libs
+   - MySQL-python
+   - perl-DBD-MySQL
+
+- name: Configure SELinux to start mysql on any port
+  seboolean: name=mysql_connect_any state=true persistent=yes
+
+- name: Create Mysql configuration file
+  template: src=my.cnf.j2 dest=/etc/my.cnf
+
+- name: Create MariaDB log file
+  file: path=/var/log/mysqld.log state=touch owner=mysql group=mysql mode=0775
+
+- name: Create MariaDB PID directory
+  file: path=/var/run/mysqld state=directory owner=mysql group=mysql mode=0775
+
+- name: Start MariaDB Service
+  service: name=mariadb state=started enabled=yes
+
+- name: insert firewalld rule
+  firewalld: port={{ mysql_port }}/tcp permanent=true state=enabled immediate=yes
+
+- name: Set root user and update mysql security
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      - [{{role_path|basename}}] Set root user and update mysql security<br>
+
+# If .my.cnf already exists, this will cause an mysql-root-password update.
+#  ignore_errors: yes
+- name: Set root user password
+  mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    check_implicit_admin: true
+
+- name: Create Option .my.cnf
+  template:
+   src: "client.my.cnf.j2"
+   dest: "~/.my.cnf"
+   owner: root
+   group: root
+   mode: 0600
+
+# mysql security settings
+- name: MySQL - Delete anonymous mysql user
+  mysql_user:
+    name: "" 
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+- name: MySQL - Update mysql root passwd
+  mysql_user:
+    name: root 
+    host: "{{item}}" 
+    password: "{{ mysql_root_password }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  with_items:
+    - "{{ ansible_hostname }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: Removes all anonymous user accounts
+  mysql_user:
+    name: ''
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    host_all: yes
+    state: absent
+
+- name: Create Application DB Users
+  mysql_user: 
+    login_user: "root"
+    login_password: "{{ mysql_root_password }}" 
+    name: "{{ item.user }}" 
+    password: "{{ item.pass }}" 
+    priv: '*.*:ALL,GRANT'
+    state: present
+  with_items:
+    - "{{ acc_items }}"
+
+- name: Finished setting mysql up
+  blockinfile:
+    path: "{{ www_index }}"
+    marker: ""
+    block: |
+      - [{{role_path|basename}}] Finished setting mysql up<br>
+      - [{{role_path|basename}}] Archiving Files and Dumping Database Data<br>
+
+

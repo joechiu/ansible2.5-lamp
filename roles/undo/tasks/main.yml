@@ -1,0 +1,52 @@
+---
+# Undo the installation beforehand
+- name: Remove Tools by Shell
+  shell: |
+    yum remove -y mysql
+    yum remove -y firewalld
+    yum remove -y $(rpm -qa "*-devel")
+    rm -rf /var/run/mysqld
+    rm -rf /etc/my.cnf*
+    rm -rf /etc/httpd
+    rm -rf /root/.my.cnf*
+    rm -rf /var/www
+    rm -rf /var/lib/mysql
+    rm -rf /tmp/*.gz
+  args:
+    warn: no
+
+- name: Remove the user home diretories
+  file: 
+    path: "/home/{{ item.user }}" 
+    state: absent 
+  with_items:
+    - "{{ user_accounts }}"
+
+- name: Uninstall LAMP Packages
+  yum: name={{ item }} state=removed
+  msg: "yum removing {{ item }}"
+  with_items:
+    - httpd
+    - httpd-devel
+    - httpd-manual
+    - httpd-tools
+    - mod_auth_kerb
+    - mod_auth_mysql
+    - mod_auth_pgsql
+    - mod_authz_ldap
+    - mod_dav_svn
+    - mod_dnssd
+    - mod_nss
+    - mod_perl
+    - mod_revocator
+    - mod_ssl mod_wsgi
+    - perl-libwww-perl
+    - perl-JSON
+
+- name: Remove user accounts
+  user:
+    name: "{{ item.user }}"
+    state: absent
+    remove: yes
+  with_items:
+    - "{{ user_accounts }}"

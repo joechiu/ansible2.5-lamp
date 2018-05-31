@@ -1,0 +1,4 @@
+---
+# using the global handler
+dependencies:
+  - { role: global }
