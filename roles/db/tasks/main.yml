@@ -1,5 +1,5 @@
 ---
-# This playbook will install MariaDB and create db user and give permissions.
+# This playbook will install MariaDB, create db users, setup mysql security and grant user permissions.
 
 - name: Task process message
   blockinfile:
@@ -9,7 +9,7 @@
       <h4>Task Processes</h4>
       - [{{role_path|basename}}] Install MariaDB package<br>
 
-- name: Install MariaDB package
+- name: Install MariaDB packages
   yum: name={{ item }} state=installed
   with_items:
    - mariadb
@@ -18,7 +18,7 @@
    - MySQL-python
    - perl-DBD-MySQL
 
-- name: Configure SELinux to start mysql on any port
+- name: Configure SELinux to start mysql on the mysql port
   seboolean: name=mysql_connect_any state=true persistent=yes
 
 - name: Create Mysql configuration file
@@ -44,14 +44,13 @@
       - [{{role_path|basename}}] Set root user and update mysql security<br>
 
 # If .my.cnf already exists, this will cause a mysql-root-password update issue.
-#  ignore_errors: yes
 - name: Set root user password
   mysql_user:
     name: root
     password: "{{ mysql_root_password }}"
     check_implicit_admin: true
 
-- name: Create Option .my.cnf
+- name: Create the customer configuration file - .my.cnf
   template:
    src: "client.my.cnf.j2"
    dest: "~/.my.cnf"
@@ -60,14 +59,14 @@
    mode: 0600
 
 # mysql security settings
-- name: MySQL - Delete anonymous mysql user
+- name: MySQL - remove anonymous mysql user
   mysql_user:
     name: "" 
     state: absent
     login_user: root
     login_password: "{{ mysql_root_password }}"
 
-- name: MySQL - Update mysql root passwd
+- name: MySQL - update mysql root password
   mysql_user:
     name: root 
     host: "{{item}}" 
@@ -99,12 +98,11 @@
   with_items:
     - "{{ acc_items }}"
 
-- name: Finished setting mysql up
+- name: mysql installed
   blockinfile:
     path: "{{ www_index }}"
     marker: ""
     block: |
       - [{{role_path|basename}}] Finished setting mysql up<br>
       - [{{role_path|basename}}] Archiving Files and Dumping Database Data<br>
-
 
