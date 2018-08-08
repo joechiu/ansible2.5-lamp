@@ -43,7 +43,7 @@
     block: |
       - [{{role_path|basename}}] Set root user and update mysql security<br>
 
-# If .my.cnf already exists, this will cause an mysql-root-password update.
+# If .my.cnf already exists, this will cause a mysql-root-password update issue.
 #  ignore_errors: yes
 - name: Set root user password
   mysql_user:
